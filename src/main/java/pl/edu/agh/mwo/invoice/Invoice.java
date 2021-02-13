@@ -16,7 +16,11 @@ public class Invoice {
 	}
 
 	public void addProduct(Product product, Integer quantity) {
+		if (quantity <= 0) {
+			throw new IllegalArgumentException("You cannot add product with 0 or negative quantity.");
+		}
 		this.products.put(product, quantity);
+
 	}
 
 	public BigDecimal getNetPrice() {
