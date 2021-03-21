@@ -1,17 +1,22 @@
 package pl.edu.agh.mwo.invoice;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
+import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Random;
-
-import pl.edu.agh.mwo.invoice.product.DairyProduct;
+import pl.edu.agh.mwo.invoice.product.FuelCanister;
 import pl.edu.agh.mwo.invoice.product.Product;
 
 public class Invoice {
+
+    private static final int exciseFreeDay = 26;
+    private static final int exciseFreeMonth = 4;
+    private static final int year = 2021;
     private static int InvoicesQuantitySum = 0;
+
     private int invoiceNumber = 0;
+    private LocalDate invoiceDate = LocalDate.now();
+    private LocalDate invoiceFuelExciseFreeDay = LocalDate.of(year, exciseFreeMonth, exciseFreeDay);
 
     // changed to LinkedHashMap to keep order of products added to invoice
     private Map<Product, Integer> products = new LinkedHashMap<Product, Integer>();
@@ -48,7 +53,14 @@ public class Invoice {
         BigDecimal totalGross = BigDecimal.ZERO;
         for (Product product : products.keySet()) {
             BigDecimal quantity = new BigDecimal(products.get(product));
-            totalGross = totalGross.add(product.getPriceWithTax().multiply(quantity));
+
+            if (invoiceDate.isEqual(invoiceFuelExciseFreeDay) && product.getClass() == FuelCanister.class) {
+                totalGross = totalGross
+                        .add(product.getPriceWithTax().subtract(product.getExciseTax()).multiply(quantity));
+
+            } else {
+                totalGross = totalGross.add(product.getPriceWithTax().multiply(quantity));
+            }
         }
         return totalGross;
     }
@@ -62,7 +74,7 @@ public class Invoice {
         builder.append("Nr faktury: " + this.invoiceNumber + "\n");
         for (Product prod : products.keySet()) {
             builder.append("Nazwa: " + prod.getName() + "\tSztuk: " + products.get(prod) + "\tCena 1szt: "
-                    + prod.getPrice() + "\n");
+                    + prod.getPriceWithTax() + "\n");
         }
         builder.append("Liczba pozycji: " + products.size());
 
@@ -72,4 +84,13 @@ public class Invoice {
     public int getInvoicePositions() {
         return products.size();
     }
+
+    public LocalDate getInvoiceDate() {
+        return invoiceDate;
+    }
+
+    public void setInvoiceDate(LocalDate invoiceDate) {
+        this.invoiceDate = invoiceDate;
+    }
+
 }

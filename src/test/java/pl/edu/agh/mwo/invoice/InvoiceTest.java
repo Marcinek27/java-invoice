@@ -1,6 +1,7 @@
 package pl.edu.agh.mwo.invoice;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 import org.hamcrest.Matchers;
 import org.junit.Assert;
@@ -8,7 +9,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import pl.edu.agh.mwo.invoice.Invoice;
+import pl.edu.agh.mwo.invoice.product.BottleOfWine;
 import pl.edu.agh.mwo.invoice.product.DairyProduct;
+import pl.edu.agh.mwo.invoice.product.FuelCanister;
 import pl.edu.agh.mwo.invoice.product.OtherProduct;
 import pl.edu.agh.mwo.invoice.product.Product;
 import pl.edu.agh.mwo.invoice.product.TaxFreeProduct;
@@ -143,7 +146,7 @@ public class InvoiceTest {
         StringBuilder bulider = new StringBuilder();
         invoice.addProduct(new DairyProduct("Product1", new BigDecimal(6)));
         bulider.append("Nr faktury: " + invoice.getInvoiceNumber() + "\n");
-        bulider.append("Nazwa: " + "Product1" + "\tSztuk: " + "1" + "\tCena 1szt: " + "6" + "\n");
+        bulider.append("Nazwa: " + "Product1" + "\tSztuk: " + "1" + "\tCena 1szt: " + "6.48" + "\n");
         bulider.append("Liczba pozycji: 1");
         Assert.assertEquals(bulider.toString(), invoice.getResume());
     }
@@ -160,10 +163,10 @@ public class InvoiceTest {
         invoice.addProduct(prod3, 5);
         invoice.addProduct(prod4);
         bulider.append("Nr faktury: " + invoice.getInvoiceNumber() + "\n");
-        bulider.append("Nazwa: " + "Product1" + "\tSztuk: " + "1" + "\tCena 1szt: " + "5" + "\n");
-        bulider.append("Nazwa: " + "Product2" + "\tSztuk: " + "3" + "\tCena 1szt: " + "8" + "\n");
-        bulider.append("Nazwa: " + "Product3" + "\tSztuk: " + "5" + "\tCena 1szt: " + "16" + "\n");
-        bulider.append("Nazwa: " + "Product4" + "\tSztuk: " + "1" + "\tCena 1szt: " + "20" + "\n");
+        bulider.append("Nazwa: " + "Product1" + "\tSztuk: " + "1" + "\tCena 1szt: " + "6.15" + "\n");
+        bulider.append("Nazwa: " + "Product2" + "\tSztuk: " + "3" + "\tCena 1szt: " + "9.84" + "\n");
+        bulider.append("Nazwa: " + "Product3" + "\tSztuk: " + "5" + "\tCena 1szt: " + "17.28" + "\n");
+        bulider.append("Nazwa: " + "Product4" + "\tSztuk: " + "1" + "\tCena 1szt: " + "21.60" + "\n");
         bulider.append("Liczba pozycji: 4");
         Assert.assertEquals(bulider.toString(), invoice.getResume());
     }
@@ -177,6 +180,42 @@ public class InvoiceTest {
         invoice.addProduct(prod2, 4);
         invoice.addProduct(prod2, 2);
         Assert.assertEquals(invoice.getInvoicePositions(), 2);
+    }
+
+    @Test
+    public void testInvoiceNormalDayWithExciseProductsResumePrint() {
+        OtherProduct prod1 = new OtherProduct("Product1", new BigDecimal(8));
+        DairyProduct prod2 = new DairyProduct("Product2", new BigDecimal(16));
+        FuelCanister canister1 = new FuelCanister("Fuel canister1", new BigDecimal(200));
+        FuelCanister canister2 = new FuelCanister("Fuel canister2", new BigDecimal(300));
+        BottleOfWine wine1 = new BottleOfWine("Wine1", new BigDecimal(25));
+        BottleOfWine wine2 = new BottleOfWine("Wine2", new BigDecimal(30));
+        invoice.addProduct(prod1);
+        invoice.addProduct(prod2, 3);
+        invoice.addProduct(canister1);
+        invoice.addProduct(canister2, 2);
+        invoice.addProduct(wine1);
+        invoice.addProduct(wine2, 4);
+        invoice.setInvoiceDate(LocalDate.of(2021, 3, 21));
+        Assert.assertEquals(invoice.getGrossTotal(), new BigDecimal("1268.51"));
+    }
+
+    @Test
+    public void testInvoiceExciseFreeDayWithExciseProductsResumePrint() {
+        OtherProduct prod1 = new OtherProduct("Product1", new BigDecimal(8));
+        DairyProduct prod2 = new DairyProduct("Product2", new BigDecimal(16));
+        FuelCanister canister1 = new FuelCanister("Fuel canister1", new BigDecimal(200));
+        FuelCanister canister2 = new FuelCanister("Fuel canister2", new BigDecimal(300));
+        BottleOfWine wine1 = new BottleOfWine("Wine1", new BigDecimal(25));
+        BottleOfWine wine2 = new BottleOfWine("Wine2", new BigDecimal(30));
+        invoice.addProduct(prod1);
+        invoice.addProduct(prod2, 3);
+        invoice.addProduct(canister1);
+        invoice.addProduct(canister2, 2);
+        invoice.addProduct(wine1);
+        invoice.addProduct(wine2, 4);
+        invoice.setInvoiceDate(LocalDate.of(2021, 4, 26));
+        Assert.assertEquals(invoice.getGrossTotal(), new BigDecimal("1251.83"));
     }
 
 }
